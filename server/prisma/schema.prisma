@@ -1,0 +1,806 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admissions {
+  id                  Int                @id @default(autoincrement())
+  admission_number    String             @unique(map: "admission_number") @db.VarChar(50)
+  patient_id          Int
+  bed_id              Int
+  doctor_id           Int
+  admission_date      DateTime           @default(now()) @db.DateTime(0)
+  discharge_date      DateTime?          @db.DateTime(0)
+  admission_reason    String             @db.Text
+  initial_diagnosis   String?            @db.Text
+  status              admissions_status? @default(Admitted)
+  discharge_summary   String?            @db.Text
+  discharge_condition String?            @db.VarChar(100)
+  created_at          DateTime?          @default(now()) @db.Timestamp(0)
+  patients            patients           @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "admissions_ibfk_1")
+  wards_and_beds      wards_and_beds     @relation(fields: [bed_id], references: [id], onUpdate: NoAction, map: "admissions_ibfk_2")
+  doctors             doctors            @relation(fields: [doctor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "admissions_ibfk_3")
+  bedside_vitals      bedside_vitals[]
+  emar_medications    emar_medications[]
+  invoices            invoices[]
+
+  @@index([bed_id], map: "bed_id")
+  @@index([doctor_id], map: "doctor_id")
+  @@index([patient_id], map: "patient_id")
+}
+
+model appointments {
+  id                 Int                  @id @default(autoincrement())
+  appointment_number String               @unique(map: "appointment_number") @db.VarChar(50)
+  patient_id         Int
+  doctor_id          Int
+  appointment_date   DateTime             @db.Date
+  appointment_time   String?              @default("10:00 AM") @db.VarChar(20)
+  token_number       Int
+  type               appointments_type?   @default(OPD)
+  status             appointments_status? @default(Scheduled)
+  symptoms           String?              @db.Text
+  notes              String?              @db.Text
+  created_at         DateTime?            @default(now()) @db.Timestamp(0)
+  patients           patients             @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "appointments_ibfk_1")
+  doctors            doctors              @relation(fields: [doctor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "appointments_ibfk_2")
+  invoices           invoices[]
+  prescriptions      prescriptions[]
+
+  @@index([doctor_id], map: "doctor_id")
+  @@index([appointment_date, doctor_id], map: "idx_date_doctor")
+  @@index([patient_id], map: "patient_id")
+}
+
+model doctors {
+  id                 Int                  @id @default(autoincrement())
+  user_id            Int?                 @unique(map: "user_id")
+  name               String               @db.VarChar(100)
+  department         String               @db.VarChar(100)
+  specialization     String               @db.VarChar(150)
+  qualification      String               @db.VarChar(150)
+  room_no            String               @db.VarChar(50)
+  consultation_fee   Decimal              @default(500.00) @db.Decimal(10, 2)
+  available_days     String?              @default("Mon,Tue,Wed,Thu,Fri,Sat") @db.VarChar(100)
+  consultation_hours String?              @default("09:00 AM - 05:00 PM") @db.VarChar(100)
+  phone              String?              @db.VarChar(20)
+  email              String?              @db.VarChar(100)
+  created_at         DateTime?            @default(now()) @db.Timestamp(0)
+  admissions         admissions[]
+  appointments       appointments[]
+  blood_requisitions blood_requisitions[]
+  users              users?               @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "doctors_ibfk_1")
+  emergency_cases    emergency_cases[]
+  lab_requests       lab_requests[]
+  prescriptions      prescriptions[]
+  surgeries          surgeries[]
+}
+
+model invoices {
+  id               Int                      @id @default(autoincrement())
+  invoice_number   String                   @unique(map: "invoice_number") @db.VarChar(50)
+  patient_id       Int
+  admission_id     Int?
+  appointment_id   Int?
+  consultation_fee Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  bed_charges      Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  pharmacy_charges Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  lab_charges      Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  nursing_charges  Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  other_charges    Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  subtotal         Decimal                  @db.Decimal(10, 2)
+  discount         Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  tax              Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  total_amount     Decimal                  @db.Decimal(10, 2)
+  paid_amount      Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  due_amount       Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  payment_method   invoices_payment_method? @default(Cash)
+  payment_status   invoices_payment_status? @default(Unpaid)
+  billing_date     DateTime                 @db.Date
+  remarks          String?                  @db.Text
+  created_by       Int?
+  created_at       DateTime?                @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?                @default(now()) @db.Timestamp(0)
+  patients         patients                 @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoices_ibfk_1")
+  admissions       admissions?              @relation(fields: [admission_id], references: [id], onUpdate: NoAction, map: "invoices_ibfk_2")
+  appointments     appointments?            @relation(fields: [appointment_id], references: [id], onUpdate: NoAction, map: "invoices_ibfk_3")
+  users            users?                   @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "invoices_ibfk_4")
+
+  @@index([admission_id], map: "admission_id")
+  @@index([appointment_id], map: "appointment_id")
+  @@index([created_by], map: "created_by")
+  @@index([patient_id], map: "patient_id")
+}
+
+model lab_requests {
+  id                 Int                    @id @default(autoincrement())
+  requisition_number String                 @unique(map: "requisition_number") @db.VarChar(50)
+  patient_id         Int
+  doctor_id          Int
+  prescription_id    Int?
+  test_id            Int
+  priority           lab_requests_priority? @default(Normal)
+  status             lab_requests_status?   @default(Pending)
+  result_value       String?                @db.VarChar(255)
+  remarks            String?                @db.Text
+  report_file        String?                @db.VarChar(255)
+  technician_id      Int?
+  test_date          DateTime               @db.Date
+  completed_at       DateTime?              @db.DateTime(0)
+  created_at         DateTime?              @default(now()) @db.Timestamp(0)
+  patients           patients               @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lab_requests_ibfk_1")
+  doctors            doctors                @relation(fields: [doctor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lab_requests_ibfk_2")
+  prescriptions      prescriptions?         @relation(fields: [prescription_id], references: [id], onUpdate: NoAction, map: "lab_requests_ibfk_3")
+  lab_tests_catalog  lab_tests_catalog      @relation(fields: [test_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lab_requests_ibfk_4")
+  users              users?                 @relation(fields: [technician_id], references: [id], onUpdate: NoAction, map: "lab_requests_ibfk_5")
+
+  @@index([doctor_id], map: "doctor_id")
+  @@index([patient_id], map: "patient_id")
+  @@index([prescription_id], map: "prescription_id")
+  @@index([technician_id], map: "technician_id")
+  @@index([test_id], map: "test_id")
+}
+
+model lab_tests_catalog {
+  id              Int                        @id @default(autoincrement())
+  test_code       String                     @unique(map: "test_code") @db.VarChar(50)
+  test_name       String                     @db.VarChar(150)
+  category        lab_tests_catalog_category
+  standard_charge Decimal                    @db.Decimal(10, 2)
+  normal_range    String?                    @db.VarChar(100)
+  unit            String?                    @db.VarChar(50)
+  turnaround_time String?                    @default("24 Hours") @db.VarChar(50)
+  created_at      DateTime?                  @default(now()) @db.Timestamp(0)
+  lab_requests    lab_requests[]
+}
+
+model medicines {
+  id                  Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(150)
+  generic_name        String                @db.VarChar(150)
+  category            medicines_category
+  batch_number        String                @db.VarChar(50)
+  manufacturer        String                @db.VarChar(150)
+  unit_price          Decimal               @db.Decimal(10, 2)
+  purchase_price      Decimal               @default(0.00) @db.Decimal(10, 2)
+  stock_quantity      Int                   @default(0)
+  reorder_level       Int                   @default(20)
+  expiry_date         DateTime              @db.Date
+  location_rack       String?               @default("Rack-A1") @db.VarChar(50)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  updated_at          DateTime?             @default(now()) @db.Timestamp(0)
+  pharmacy_sale_items pharmacy_sale_items[]
+
+  @@index([name], map: "idx_medicine_name")
+}
+
+model patients {
+  id                 Int                   @id @default(autoincrement())
+  patient_id         String                @unique(map: "patient_id") @db.VarChar(50)
+  user_id            Int?                  @unique(map: "user_id")
+  name               String                @db.VarChar(100)
+  age                Int
+  gender             patients_gender
+  blood_group        patients_blood_group? @default(O_POS)
+  phone              String                @db.VarChar(20)
+  email              String?               @db.VarChar(100)
+  address            String?               @db.Text
+  emergency_contact  String?               @db.VarChar(100)
+  allergies          String?               @db.Text
+  chronic_conditions String?               @db.Text
+  created_at         DateTime?             @default(now()) @db.Timestamp(0)
+  updated_at         DateTime?             @default(now()) @db.Timestamp(0)
+  admissions         admissions[]
+  appointments       appointments[]
+  blood_requisitions blood_requisitions[]
+  emergency_cases    emergency_cases[]
+  invoices           invoices[]
+  lab_requests       lab_requests[]
+  users              users?                @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "patients_ibfk_1")
+  pharmacy_sales     pharmacy_sales[]
+  prescriptions      prescriptions[]
+  surgeries          surgeries[]
+
+  @@index([patient_id], map: "idx_patient_id")
+  @@index([phone], map: "idx_phone")
+}
+
+model pharmacy_sale_items {
+  id             Int            @id @default(autoincrement())
+  sale_id        Int
+  medicine_id    Int
+  quantity       Int
+  unit_price     Decimal        @db.Decimal(10, 2)
+  subtotal       Decimal        @db.Decimal(10, 2)
+  pharmacy_sales pharmacy_sales @relation(fields: [sale_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pharmacy_sale_items_ibfk_1")
+  medicines      medicines      @relation(fields: [medicine_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pharmacy_sale_items_ibfk_2")
+
+  @@index([medicine_id], map: "medicine_id")
+  @@index([sale_id], map: "sale_id")
+}
+
+model pharmacy_sales {
+  id                  Int                            @id @default(autoincrement())
+  invoice_number      String                         @unique(map: "invoice_number") @db.VarChar(50)
+  patient_id          Int?
+  patient_name        String                         @db.VarChar(100)
+  prescription_id     Int?
+  total_amount        Decimal                        @db.Decimal(10, 2)
+  discount            Decimal?                       @default(0.00) @db.Decimal(10, 2)
+  net_amount          Decimal                        @db.Decimal(10, 2)
+  payment_status      pharmacy_sales_payment_status? @default(Paid)
+  dispensed_by        Int?
+  created_at          DateTime?                      @default(now()) @db.Timestamp(0)
+  pharmacy_sale_items pharmacy_sale_items[]
+  patients            patients?                      @relation(fields: [patient_id], references: [id], onUpdate: NoAction, map: "pharmacy_sales_ibfk_1")
+  prescriptions       prescriptions?                 @relation(fields: [prescription_id], references: [id], onUpdate: NoAction, map: "pharmacy_sales_ibfk_2")
+  users               users?                         @relation(fields: [dispensed_by], references: [id], onUpdate: NoAction, map: "pharmacy_sales_ibfk_3")
+
+  @@index([dispensed_by], map: "dispensed_by")
+  @@index([patient_id], map: "patient_id")
+  @@index([prescription_id], map: "prescription_id")
+}
+
+model prescription_items {
+  id              Int           @id @default(autoincrement())
+  prescription_id Int
+  medicine_name   String        @db.VarChar(150)
+  dosage          String        @db.VarChar(50)
+  frequency       String        @db.VarChar(50)
+  duration        String        @db.VarChar(50)
+  instructions    String?       @db.VarChar(150)
+  prescriptions   prescriptions @relation(fields: [prescription_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "prescription_items_ibfk_1")
+
+  @@index([prescription_id], map: "prescription_id")
+}
+
+model prescriptions {
+  id                  Int                  @id @default(autoincrement())
+  prescription_number String               @unique(map: "prescription_number") @db.VarChar(50)
+  patient_id          Int
+  doctor_id           Int
+  appointment_id      Int?
+  consultation_date   DateTime             @db.Date
+  symptoms            String               @db.Text
+  diagnosis           String               @db.Text
+  bp                  String?              @default("120/80 mmHg") @db.VarChar(20)
+  pulse               String?              @default("75 bpm") @db.VarChar(20)
+  temperature         String?              @default("98.6 °F") @db.VarChar(20)
+  weight              String?              @default("68 kg") @db.VarChar(20)
+  lifestyle_advice    String?              @db.Text
+  follow_up_date      DateTime?            @db.Date
+  created_at          DateTime?            @default(now()) @db.Timestamp(0)
+  lab_requests        lab_requests[]
+  pharmacy_sales      pharmacy_sales[]
+  prescription_items  prescription_items[]
+  patients            patients             @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "prescriptions_ibfk_1")
+  doctors             doctors              @relation(fields: [doctor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "prescriptions_ibfk_2")
+  appointments        appointments?        @relation(fields: [appointment_id], references: [id], onUpdate: NoAction, map: "prescriptions_ibfk_3")
+
+  @@index([appointment_id], map: "appointment_id")
+  @@index([doctor_id], map: "doctor_id")
+  @@index([patient_id], map: "patient_id")
+}
+
+model users {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(100)
+  email          String           @unique(map: "email") @db.VarChar(100)
+  password       String           @db.VarChar(255)
+  role           users_role
+  phone          String?          @db.VarChar(20)
+  department     String?          @db.VarChar(100)
+  specialization String?          @db.VarChar(150)
+  avatar         String?          @db.VarChar(255)
+  status         users_status?    @default(active)
+  created_at     DateTime?        @default(now()) @db.Timestamp(0)
+  updated_at     DateTime?        @default(now()) @db.Timestamp(0)
+  doctors        doctors?
+  invoices       invoices[]
+  lab_requests   lab_requests[]
+  patients       patients?
+  pharmacy_sales pharmacy_sales[]
+
+  @@index([email], map: "idx_email")
+  @@index([role], map: "idx_role")
+}
+
+model wards_and_beds {
+  id           Int                      @id @default(autoincrement())
+  bed_number   String                   @unique(map: "bed_number") @db.VarChar(50)
+  ward_type    wards_and_beds_ward_type
+  floor        String?                  @default("1st Floor") @db.VarChar(50)
+  daily_charge Decimal                  @default(1000.00) @db.Decimal(10, 2)
+  status       wards_and_beds_status?   @default(Available)
+  description  String?                  @db.VarChar(255)
+  created_at   DateTime?                @default(now()) @db.Timestamp(0)
+  admissions   admissions[]
+}
+
+model bedside_vitals {
+  id                     Int        @id @default(autoincrement())
+  admission_id           Int
+  recorded_by_nurse      String     @db.VarChar(100)
+  bp                     String?    @default("120/80") @db.VarChar(30)
+  pulse                  String?    @default("76") @db.VarChar(30)
+  temperature            String?    @default("98.6") @db.VarChar(30)
+  spo2                   Int?       @default(98)
+  respiratory_rate       Int?       @default(18)
+  blood_sugar_fbs        String?    @db.VarChar(30)
+  urine_output_ml        Int?
+  fluid_intake_ml        Int?
+  nurse_assessment_notes String?    @db.Text
+  recorded_at            DateTime   @default(now()) @db.DateTime(0)
+  created_at             DateTime?  @default(now()) @db.Timestamp(0)
+  admissions             admissions @relation(fields: [admission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "bedside_vitals_ibfk_1")
+
+  @@index([admission_id], map: "idx_admission")
+}
+
+model blood_donors {
+  id                 Int                      @id @default(autoincrement())
+  donor_code         String                   @unique(map: "donor_code") @db.VarChar(50)
+  name               String                   @db.VarChar(150)
+  blood_group        blood_donors_blood_group
+  gender             blood_donors_gender
+  age                Int
+  phone              String                   @db.VarChar(50)
+  email              String?                  @db.VarChar(100)
+  address            String?                  @db.Text
+  last_donation_date DateTime?                @db.Date
+  total_donations    Int?                     @default(0)
+  is_eligible        Boolean?                 @default(true)
+  created_at         DateTime?                @default(now()) @db.Timestamp(0)
+  blood_inventory    blood_inventory[]
+}
+
+model blood_inventory {
+  id                 Int                            @id @default(autoincrement())
+  bag_number         String                         @unique(map: "bag_number") @db.VarChar(50)
+  donor_id           Int?
+  blood_group        blood_inventory_blood_group
+  component_type     blood_inventory_component_type @default(Whole_Blood)
+  volume_ml          Int?                           @default(450)
+  collected_date     DateTime                       @db.Date
+  expiry_date        DateTime                       @db.Date
+  storage_location   String?                        @default("Blood Bank Refrigerator #1") @db.VarChar(100)
+  status             blood_inventory_status         @default(Available)
+  created_at         DateTime?                      @default(now()) @db.Timestamp(0)
+  blood_donors       blood_donors?                  @relation(fields: [donor_id], references: [id], onUpdate: NoAction, map: "blood_inventory_ibfk_1")
+  blood_requisitions blood_requisitions[]
+
+  @@index([donor_id], map: "donor_id")
+  @@index([blood_group], map: "idx_blood_group")
+  @@index([status], map: "idx_status")
+}
+
+model blood_requisitions {
+  id                Int                                  @id @default(autoincrement())
+  req_number        String                               @unique(map: "req_number") @db.VarChar(50)
+  patient_id        Int
+  doctor_id         Int?
+  blood_group       blood_requisitions_blood_group
+  component_type    blood_requisitions_component_type    @default(Whole_Blood)
+  units_required    Int                                  @default(1)
+  urgency           blood_requisitions_urgency           @default(Routine)
+  crossmatch_status blood_requisitions_crossmatch_status @default(Pending)
+  status            blood_requisitions_status            @default(Requested)
+  issued_bag_id     Int?
+  notes             String?                              @db.Text
+  required_date     DateTime                             @db.Date
+  created_at        DateTime?                            @default(now()) @db.Timestamp(0)
+  patients          patients                             @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "blood_requisitions_ibfk_1")
+  doctors           doctors?                             @relation(fields: [doctor_id], references: [id], onUpdate: NoAction, map: "blood_requisitions_ibfk_2")
+  blood_inventory   blood_inventory?                     @relation(fields: [issued_bag_id], references: [id], onUpdate: NoAction, map: "blood_requisitions_ibfk_3")
+
+  @@index([doctor_id], map: "doctor_id")
+  @@index([issued_bag_id], map: "issued_bag_id")
+  @@index([patient_id], map: "patient_id")
+}
+
+model emar_medications {
+  id              Int                     @id @default(autoincrement())
+  admission_id    Int
+  medicine_name   String                  @db.VarChar(150)
+  dosage          String                  @db.VarChar(50)
+  route           emar_medications_route  @default(Oral)
+  scheduled_time  String                  @db.VarChar(50)
+  status          emar_medications_status @default(Scheduled)
+  administered_at DateTime?               @db.DateTime(0)
+  nurse_name      String?                 @db.VarChar(100)
+  notes           String?                 @db.VarChar(255)
+  created_at      DateTime?               @default(now()) @db.Timestamp(0)
+  admissions      admissions              @relation(fields: [admission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "emar_medications_ibfk_1")
+
+  @@index([admission_id], map: "idx_emar_admission")
+}
+
+model emergency_cases {
+  id                 Int                          @id @default(autoincrement())
+  case_number        String                       @unique(map: "case_number") @db.VarChar(50)
+  patient_id         Int?
+  patient_name       String                       @db.VarChar(150)
+  age                Int
+  gender             emergency_cases_gender
+  phone              String?                      @db.VarChar(50)
+  emergency_contact  String?                      @db.VarChar(100)
+  triage_level       emergency_cases_triage_level @default(Yellow)
+  arrival_mode       emergency_cases_arrival_mode @default(Walk_in)
+  gcs_score          Int?                         @default(15)
+  spo2               Int?                         @default(98)
+  bp                 String?                      @default("120/80") @db.VarChar(30)
+  pulse              String?                      @default("76") @db.VarChar(30)
+  temperature        String?                      @default("98.6") @db.VarChar(30)
+  condition_summary  String                       @db.Text
+  initial_treatment  String?                      @db.Text
+  assigned_doctor_id Int?
+  assigned_bed       String?                      @default("ER-Trolley 01") @db.VarChar(50)
+  status             emergency_cases_status       @default(Triaged)
+  arrived_at         DateTime                     @default(now()) @db.DateTime(0)
+  discharged_at      DateTime?                    @db.DateTime(0)
+  created_at         DateTime?                    @default(now()) @db.Timestamp(0)
+  patients           patients?                    @relation(fields: [patient_id], references: [id], onUpdate: NoAction, map: "emergency_cases_ibfk_1")
+  doctors            doctors?                     @relation(fields: [assigned_doctor_id], references: [id], onUpdate: NoAction, map: "emergency_cases_ibfk_2")
+
+  @@index([assigned_doctor_id], map: "assigned_doctor_id")
+  @@index([status], map: "idx_status")
+  @@index([triage_level], map: "idx_triage_level")
+  @@index([patient_id], map: "patient_id")
+}
+
+model notifications_log {
+  id               Int                          @id @default(autoincrement())
+  recipient_name   String                       @db.VarChar(150)
+  recipient_phone  String                       @db.VarChar(50)
+  event_type       notifications_log_event_type
+  channel          notifications_log_channel    @default(SMS)
+  message          String                       @db.Text
+  status           notifications_log_status     @default(Delivered)
+  gateway_response String?                      @default("200 OK (Simulated Carrier SMS Delivery)") @db.VarChar(255)
+  sent_at          DateTime                     @default(now()) @db.DateTime(0)
+  created_at       DateTime?                    @default(now()) @db.Timestamp(0)
+
+  @@index([event_type], map: "idx_event")
+  @@index([recipient_phone], map: "idx_recipient")
+}
+
+model operation_theatres {
+  id         Int                        @id @default(autoincrement())
+  ot_code    String                     @unique(map: "ot_code") @db.VarChar(50)
+  name       String                     @db.VarChar(100)
+  ot_type    operation_theatres_ot_type @default(Major_Surgical_OT)
+  floor      String?                    @default("3rd Floor OT Complex") @db.VarChar(50)
+  status     operation_theatres_status  @default(Available)
+  created_at DateTime?                  @default(now()) @db.Timestamp(0)
+  surgeries  surgeries[]
+}
+
+model surgeries {
+  id                        Int                       @id @default(autoincrement())
+  surgery_number            String                    @unique(map: "surgery_number") @db.VarChar(50)
+  patient_id                Int
+  ot_id                     Int
+  lead_surgeon_id           Int
+  anesthetist_name          String?                   @db.VarChar(150)
+  assistant_surgeons        String?                   @db.VarChar(255)
+  surgery_name              String                    @db.VarChar(200)
+  surgery_date              DateTime                  @db.Date
+  scheduled_start_time      String                    @default("09:00 AM") @db.VarChar(20)
+  estimated_duration_hours  Decimal?                  @default(2.0) @db.Decimal(4, 1)
+  anesthesia_type           surgeries_anesthesia_type @default(General_Anesthesia)
+  pre_op_checklist_verified Boolean?                  @default(false)
+  surgical_notes            String?                   @db.Text
+  post_op_care_instructions String?                   @db.Text
+  status                    surgeries_status          @default(Scheduled)
+  created_at                DateTime?                 @default(now()) @db.Timestamp(0)
+  patients                  patients                  @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "surgeries_ibfk_1")
+  operation_theatres        operation_theatres        @relation(fields: [ot_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "surgeries_ibfk_2")
+  doctors                   doctors                   @relation(fields: [lead_surgeon_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "surgeries_ibfk_3")
+
+  @@index([status], map: "idx_status")
+  @@index([surgery_date], map: "idx_surgery_date")
+  @@index([lead_surgeon_id], map: "lead_surgeon_id")
+  @@index([ot_id], map: "ot_id")
+  @@index([patient_id], map: "patient_id")
+}
+
+enum wards_and_beds_ward_type {
+  General_Male   @map("General Male")
+  General_Female @map("General Female")
+  ICU
+  CCU
+  Cabin
+  VIP_Cabin      @map("VIP Cabin")
+  Pediatric
+}
+
+enum lab_tests_catalog_category {
+  Hematology
+  Biochemistry
+  Microbiology
+  Radiology
+  Pathology
+  Cardiology
+}
+
+enum medicines_category {
+  Tablet
+  Capsule
+  Syrup
+  Injection
+  Ointment
+  IV_Fluid   @map("IV Fluid")
+  Suspension
+  Inhaler
+}
+
+enum users_role {
+  admin
+  receptionist
+  doctor
+  patient
+  pharmacist
+  lab_technician
+  accountant
+}
+
+enum patients_gender {
+  Male
+  Female
+  Other
+}
+
+enum wards_and_beds_status {
+  Available
+  Occupied
+  Maintenance
+  Cleaning
+}
+
+enum lab_requests_priority {
+  Normal
+  Urgent
+  Emergency
+}
+
+enum patients_blood_group {
+  A_POS  @map("A+")
+  A_NEG  @map("A-")
+  B_POS  @map("B+")
+  B_NEG  @map("B-")
+  AB_POS @map("AB+")
+  AB_NEG @map("AB-")
+  O_POS  @map("O+")
+  O_NEG  @map("O-")
+}
+
+enum appointments_type {
+  OPD
+  Follow_up @map("Follow-up")
+  Emergency
+  Routine
+}
+
+enum lab_requests_status {
+  Pending
+  Sample_Collected @map("Sample Collected")
+  Completed
+  Delivered
+}
+
+enum appointments_status {
+  Scheduled
+  In_Queue        @map("In-Queue")
+  In_Consultation @map("In-Consultation")
+  Completed
+  Cancelled
+}
+
+enum pharmacy_sales_payment_status {
+  Paid
+  Pending
+}
+
+enum admissions_status {
+  Admitted
+  Discharged
+}
+
+enum users_status {
+  active
+  inactive
+}
+
+enum invoices_payment_method {
+  Cash
+  Credit_Card            @map("Credit Card")
+  Debit_Card             @map("Debit Card")
+  bKash___Mobile_Banking @map("bKash / Mobile Banking")
+  Insurance
+  Bank_Transfer          @map("Bank Transfer")
+}
+
+enum invoices_payment_status {
+  Paid
+  Partial
+  Unpaid
+}
+
+enum blood_donors_blood_group {
+  A_POS  @map("A+")
+  A_NEG  @map("A-")
+  B_POS  @map("B+")
+  B_NEG  @map("B-")
+  AB_POS @map("AB+")
+  AB_NEG @map("AB-")
+  O_POS  @map("O+")
+  O_NEG  @map("O-")
+}
+
+enum blood_inventory_blood_group {
+  A_POS  @map("A+")
+  A_NEG  @map("A-")
+  B_POS  @map("B+")
+  B_NEG  @map("B-")
+  AB_POS @map("AB+")
+  AB_NEG @map("AB-")
+  O_POS  @map("O+")
+  O_NEG  @map("O-")
+}
+
+enum notifications_log_event_type {
+  Appointment_Confirmed
+  Lab_Report_Ready
+  IPD_Admitted
+  Bill_Generated
+  Emergency_Alert
+  Blood_Request
+}
+
+enum operation_theatres_ot_type {
+  Major_Surgical_OT @map("Major Surgical OT")
+  Cardiac_OT        @map("Cardiac OT")
+  Orthopedic_OT     @map("Orthopedic OT")
+  Neuro_OT          @map("Neuro OT")
+  Minor_Daycare_OT  @map("Minor Daycare OT")
+}
+
+enum blood_donors_gender {
+  Male
+  Female
+  Other
+}
+
+enum blood_inventory_component_type {
+  Whole_Blood                   @map("Whole Blood")
+  Packed_Red_Blood_Cells__PRBC_ @map("Packed Red Blood Cells (PRBC)")
+  Platelets
+  Fresh_Frozen_Plasma__FFP_     @map("Fresh Frozen Plasma (FFP)")
+}
+
+enum blood_requisitions_blood_group {
+  A_POS  @map("A+")
+  A_NEG  @map("A-")
+  B_POS  @map("B+")
+  B_NEG  @map("B-")
+  AB_POS @map("AB+")
+  AB_NEG @map("AB-")
+  O_POS  @map("O+")
+  O_NEG  @map("O-")
+}
+
+enum emar_medications_route {
+  Oral
+  IV
+  IM
+  Subcutaneous
+  Topical
+  Inhalation
+}
+
+enum notifications_log_channel {
+  SMS
+  Email
+  WhatsApp
+}
+
+enum blood_requisitions_component_type {
+  Whole_Blood                   @map("Whole Blood")
+  Packed_Red_Blood_Cells__PRBC_ @map("Packed Red Blood Cells (PRBC)")
+  Platelets
+  Fresh_Frozen_Plasma__FFP_     @map("Fresh Frozen Plasma (FFP)")
+}
+
+enum emergency_cases_gender {
+  Male
+  Female
+  Other
+}
+
+enum operation_theatres_status {
+  Available
+  In_Surgery              @map("In Surgery")
+  Sanitizing___Fumigation @map("Sanitizing / Fumigation")
+  Under_Maintenance       @map("Under Maintenance")
+}
+
+enum emar_medications_status {
+  Scheduled
+  Administered
+  Refused_by_Patient         @map("Refused by Patient")
+  Withheld___Contraindicated @map("Withheld / Contraindicated")
+}
+
+enum notifications_log_status {
+  Delivered
+  Sent
+  Failed
+}
+
+enum blood_requisitions_urgency {
+  Routine
+  Urgent
+  Emergency___Immediate @map("Emergency - Immediate")
+}
+
+enum blood_requisitions_crossmatch_status {
+  Pending
+  Compatible
+  Incompatible
+}
+
+enum emergency_cases_triage_level {
+  Red
+  Yellow
+  Green
+}
+
+enum blood_inventory_status {
+  Available
+  Reserved
+  Transfused
+  Discarded_Expired @map("Discarded/Expired")
+}
+
+enum blood_requisitions_status {
+  Requested
+  Approved
+  Crossmatched
+  Issued
+  Cancelled
+}
+
+enum emergency_cases_arrival_mode {
+  Ambulance
+  Walk_in         @map("Walk-in")
+  Police_Referral @map("Police/Referral")
+}
+
+enum surgeries_anesthesia_type {
+  General_Anesthesia  @map("General Anesthesia")
+  Spinal_Anesthesia   @map("Spinal Anesthesia")
+  Epidural_Anesthesia @map("Epidural Anesthesia")
+  Local_Anesthesia    @map("Local Anesthesia")
+  Sedation
+}
+
+enum surgeries_status {
+  Scheduled
+  Pre_Op_Preparation @map("Pre-Op Preparation")
+  In_Theatre         @map("In Theatre")
+  Recovery_Room      @map("Recovery Room")
+  Completed
+  Cancelled
+}
+
+enum emergency_cases_status {
+  Triaged
+  Under_Treatment
+  Transferred_to_IPD
+  Discharged
+  Deceased
+}
