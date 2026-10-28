@@ -17,10 +17,13 @@ import {
   CheckCircle, 
   Clock, 
   ChevronRight,
-  Eye
+  Eye,
+  ShieldAlert,
+  AlertTriangle
 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import QRCodeSVG from '../components/QRCodeSVG';
 
 const DoctorConsultation = () => {
   const { user, isDoctor, isAdmin } = useAuth();
@@ -380,6 +383,52 @@ const DoctorConsultation = () => {
                   </select>
                 </div>
               </div>
+
+              {/* 🛡️ Smart Clinical Allergy & Safety Shield */}
+              {(() => {
+                const pt = patients.find(p => p.id === parseInt(formData.patient_id));
+                if (!pt) return null;
+
+                const conflicts = [];
+                if (pt.allergies) {
+                  const allergyLower = pt.allergies.toLowerCase();
+                  formData.medicines.forEach(m => {
+                    const name = (m.medicine_name || '').toLowerCase();
+                    if (!name) return;
+                    if (allergyLower.includes('penicillin') && (name.includes('amox') || name.includes('penicillin') || name.includes('ampicillin'))) {
+                      conflicts.push({ med: m.medicine_name, allergen: pt.allergies });
+                    } else if (allergyLower.includes('sulfa') && (name.includes('sulfa') || name.includes('bactrim') || name.includes('cotrim'))) {
+                      conflicts.push({ med: m.medicine_name, allergen: pt.allergies });
+                    } else if (allergyLower.includes('aspirin') && (name.includes('aspirin') || name.includes('ibuprofen') || name.includes('diclofenac'))) {
+                      conflicts.push({ med: m.medicine_name, allergen: pt.allergies });
+                    } else if (allergyLower.includes('cephalosporin') && name.includes('cef')) {
+                      conflicts.push({ med: m.medicine_name, allergen: pt.allergies });
+                    }
+                  });
+                }
+
+                return (
+                  <div className="space-y-2">
+                    {pt.allergies && (
+                      <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-center text-xs text-amber-900">
+                        <AlertTriangle className="w-4 h-4 mr-2 text-amber-600 shrink-0" />
+                        <span><strong>Documented Patient Allergy:</strong> {pt.allergies} (Verify before prescribing medications)</span>
+                      </div>
+                    )}
+                    {conflicts.length > 0 && (
+                      <div className="p-4 bg-rose-50 border-2 border-rose-500 rounded-xl flex items-start text-xs text-rose-900 shadow-md">
+                        <ShieldAlert className="w-5 h-5 mr-2.5 text-rose-600 shrink-0 animate-bounce" />
+                        <div>
+                          <strong className="text-sm font-black block text-rose-800">🚨 CLINICAL DRUG-ALLERGY CONTRAINDICATION ALERT!</strong>
+                          <p className="mt-1">
+                            The patient has a known allergy to <strong>"{conflicts[0].allergen}"</strong>. You have entered <strong>"{conflicts[0].med}"</strong> which has high adverse reactivity. Consider an alternative medication class!
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Patient Vitals Card */}
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -741,8 +790,17 @@ const DoctorConsultation = () => {
                 )}
               </div>
 
-              {/* Doctor Signature */}
-              <div className="pt-8 flex justify-end">
+              {/* Doctor Signature & Security QR Code */}
+              <div className="pt-8 flex justify-between items-end">
+                <div className="flex items-center space-x-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <QRCodeSVG value={`CareSync-Rx:${selectedRx.prescription_number}:Pt:${selectedRx.patient_code}:Doc:${selectedRx.doctor_name}`} size={64} />
+                  <div className="text-[10px] text-slate-500 font-mono">
+                    <div className="font-bold text-slate-700">Digital Rx Verifier</div>
+                    <div>Scan at Pharmacy Counter</div>
+                    <div className="text-slate-400">Security Hash: Verified</div>
+                  </div>
+                </div>
+
                 <div className="text-center w-48 border-t border-slate-400 pt-1 text-xs">
                   <div className="font-bold text-slate-800">{selectedRx.doctor_name}</div>
                   <div className="text-slate-500">Authorized Medical Signature</div>

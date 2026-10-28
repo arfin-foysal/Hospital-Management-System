@@ -116,6 +116,25 @@ class EMRService {
     const rxNumber = `RX-${year}-${rand}`;
 
     return await prisma.$transaction(async (tx) => {
+      // Clinical Drug-Allergy Safety Check
+      const patient = await tx.patients.findUnique({ where: { id: parseInt(patient_id) } });
+      let allergyWarning = null;
+      if (patient?.allergies) {
+        const allergyLower = patient.allergies.toLowerCase();
+        for (const m of medicines) {
+          const medLower = (m.medicine_name || '').toLowerCase();
+          if (
+            (allergyLower.includes('penicillin') && (medLower.includes('amox') || medLower.includes('penicillin') || medLower.includes('ampicillin'))) ||
+            (allergyLower.includes('sulfa') && (medLower.includes('sulfa') || medLower.includes('bactrim') || medLower.includes('cotrim'))) ||
+            (allergyLower.includes('aspirin') && (medLower.includes('aspirin') || medLower.includes('ibuprofen') || medLower.includes('diclofenac'))) ||
+            (allergyLower.includes('cephalosporin') && medLower.includes('cef'))
+          ) {
+            allergyWarning = `CLINICAL ALLERGY WARNING: Patient has documented allergy "${patient.allergies}". Prescribed medication "${m.medicine_name}" may cause adverse allergic reaction!`;
+            break;
+          }
+        }
+      }
+
       const rx = await tx.prescriptions.create({
         data: {
           prescription_number: rxNumber,
@@ -171,7 +190,7 @@ class EMRService {
         });
       }
 
-      return { prescriptionId: rx.id, prescriptionNumber: rxNumber };
+      return { prescriptionId: rx.id, prescriptionNumber: rxNumber, allergyWarning };
     });
   }
 }

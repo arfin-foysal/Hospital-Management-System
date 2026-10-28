@@ -20,97 +20,99 @@ import {
   Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLocale } from '../context/LocaleContext';
 
 const Sidebar = () => {
   const { user, role, logout, isAdmin, isDoctor, isReceptionist, isPharmacist, isLabTech, isAccountant, isPatient } = useAuth();
+  const { t } = useLocale();
 
   const navItems = [
     {
-      label: 'Dashboard',
+      label: t('dashboard'),
       path: '/',
       icon: LayoutDashboard,
       show: true,
     },
     {
-      label: 'Patients',
+      label: t('patients'),
       path: '/patients',
       icon: Users,
       show: isAdmin || isReceptionist || isDoctor || isAccountant,
     },
     {
-      label: 'Appointments & OPD',
+      label: t('appointments'),
       path: '/appointments',
       icon: Calendar,
       show: isAdmin || isReceptionist || isDoctor || isPatient,
     },
     {
-      label: 'IPD & Bed Allocation',
+      label: t('ipdBeds'),
       path: '/ipd-beds',
       icon: BedDouble,
       show: isAdmin || isReceptionist || isDoctor,
     },
     {
-      label: 'Emergency & Triage',
+      label: t('emergency'),
       path: '/emergency',
       icon: AlertOctagon,
       show: isAdmin || isReceptionist || isDoctor,
     },
     {
-      label: 'Nursing Station & eMAR',
+      label: t('nursingStation'),
       path: '/nursing-station',
       icon: HeartPulse,
       show: isAdmin || isDoctor || isReceptionist,
     },
     {
-      label: 'Operation Theatre (OT)',
+      label: t('operationTheatre'),
       path: '/operation-theatre',
       icon: Scissors,
       show: isAdmin || isDoctor,
     },
     {
-      label: 'Doctor EMR & Rx',
+      label: t('doctorEmr'),
       path: '/emr-consultation',
       icon: Stethoscope,
       show: isAdmin || isDoctor,
     },
     {
-      label: 'Pharmacy & Stock',
+      label: t('pharmacy'),
       path: '/pharmacy',
       icon: Pill,
       show: isAdmin || isPharmacist || isDoctor,
     },
     {
-      label: 'Laboratory & Tests',
+      label: t('laboratory'),
       path: '/laboratory',
       icon: FlaskConical,
       show: isAdmin || isLabTech || isDoctor || isPatient,
     },
     {
-      label: 'Blood Bank',
+      label: t('bloodBank'),
       path: '/blood-bank',
       icon: Droplet,
       show: isAdmin || isLabTech || isDoctor,
     },
     {
-      label: 'Billing & Invoicing',
+      label: t('billing'),
       path: '/billing',
       icon: Receipt,
       show: isAdmin || isAccountant || isPatient,
     },
     {
-      label: 'SMS & Notifications',
+      label: t('notifications'),
       path: '/notifications',
       icon: Bell,
       show: isAdmin,
     },
     {
-      label: 'My Medical Records',
+      label: t('myRecords'),
       path: '/my-records',
       icon: FileText,
       show: isPatient,
     },
     {
-      label: 'Staff & Roles',
+      label: t('users'),
       path: '/users',
       icon: ShieldCheck,
       show: isAdmin,

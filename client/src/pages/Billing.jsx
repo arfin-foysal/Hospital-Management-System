@@ -14,10 +14,12 @@ import {
   Receipt,
   User,
   Calculator,
-  ArrowRight
+  ArrowRight,
+  Moon
 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import QRCodeSVG from '../components/QRCodeSVG';
 
 const Billing = () => {
   const { isAccountant, isAdmin, isPatient, user } = useAuth();
@@ -198,6 +200,17 @@ const Billing = () => {
     }
   };
 
+  const handleAccrueBedRent = async () => {
+    try {
+      const res = await api.post('/billing/accrue-bed-rent');
+      setSuccessMsg(res.data.message);
+      fetchInvoices();
+      setTimeout(() => setSuccessMsg(''), 5000);
+    } catch (err) {
+      alert('Failed to accrue midnight bed rent');
+    }
+  };
+
   const openPrintModal = async (inv) => {
     try {
       const res = await api.get(`/billing/invoices/${inv.id}`);
@@ -228,31 +241,40 @@ const Billing = () => {
         </div>
 
         {(isAccountant || isAdmin) && (
-          <button
-            onClick={() => {
-              setInvoiceForm({
-                patient_id: '',
-                consultation_fee: '0',
-                room_charges: '0',
-                pharmacy_charges: '0',
-                lab_charges: '0',
-                additional_charges: '0',
-                discount: '0',
-                tax_amount: '0',
-                notes: 'Consolidated hospital services invoice',
-                payment_method: 'Cash',
-                payment_status: 'Paid',
-                paid_amount: '0'
-              });
-              setPendingCharges(null);
-              setSelectedPatientId('');
-              setShowCreateModal(true);
-            }}
-            className="flex items-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-rose-500/10 cursor-pointer"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Consolidated Bill
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleAccrueBedRent}
+              className="flex items-center px-3.5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+            >
+              <Moon className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
+              Auto-Accrue Bed Rent
+            </button>
+            <button
+              onClick={() => {
+                setInvoiceForm({
+                  patient_id: '',
+                  consultation_fee: '0',
+                  room_charges: '0',
+                  pharmacy_charges: '0',
+                  lab_charges: '0',
+                  additional_charges: '0',
+                  discount: '0',
+                  tax_amount: '0',
+                  notes: 'Consolidated hospital services invoice',
+                  payment_method: 'Cash',
+                  payment_status: 'Paid',
+                  paid_amount: '0'
+                });
+                setPendingCharges(null);
+                setSelectedPatientId('');
+                setShowCreateModal(true);
+              }}
+              className="flex items-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-rose-500/10 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Consolidated Bill
+            </button>
+          </div>
         )}
       </div>
 
@@ -740,15 +762,26 @@ const Billing = () => {
                 </div>
               </div>
 
-              {/* Signatures */}
-              <div className="pt-12 flex justify-between text-xs">
-                <div className="text-center border-t border-slate-400 pt-1 w-44">
-                  <div className="font-bold text-slate-800">Patient / Depositor</div>
-                  <div className="text-slate-400">Signature</div>
+              {/* Signatures & Security QR Code */}
+              <div className="pt-10 flex justify-between items-end text-xs">
+                <div className="flex items-center space-x-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <QRCodeSVG value={`CareSync-Inv:${selectedInvoice.invoice_number}:Pt:${selectedInvoice.patient_code}:Amount:${selectedInvoice.total_amount}:Paid:${selectedInvoice.paid_amount}`} size={64} />
+                  <div className="text-[10px] text-slate-500 font-mono">
+                    <div className="font-bold text-slate-700">Official Payment Seal</div>
+                    <div>Instant Cashier Verifier</div>
+                    <div className="text-slate-400">CareSync Finance 2026</div>
+                  </div>
                 </div>
-                <div className="text-center border-t border-slate-400 pt-1 w-44">
-                  <div className="font-bold text-slate-800">Authorized Cashier</div>
-                  <div className="text-slate-400">CareSync Finance</div>
+
+                <div className="flex space-x-12">
+                  <div className="text-center border-t border-slate-400 pt-1 w-36">
+                    <div className="font-bold text-slate-800">Depositor</div>
+                    <div className="text-slate-400">Signature</div>
+                  </div>
+                  <div className="text-center border-t border-slate-400 pt-1 w-36">
+                    <div className="font-bold text-slate-800">Authorized Cashier</div>
+                    <div className="text-slate-400">CareSync Finance</div>
+                  </div>
                 </div>
               </div>
             </div>

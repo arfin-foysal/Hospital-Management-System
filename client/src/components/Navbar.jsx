@@ -4,12 +4,16 @@ import {
   ChevronDown, 
   PhoneCall, 
   Sparkles,
-  Check
+  Check,
+  Globe,
+  Coins
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLocale } from '../context/LocaleContext';
 
 const Navbar = () => {
   const { user, role, switchDemoRole } = useAuth();
+  const { lang, currency, toggleLang, toggleCurrency } = useLocale();
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [switching, setSwitching] = useState(false);
@@ -56,7 +60,26 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
+        {/* Language Toggle */}
+        <button
+          onClick={toggleLang}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 transition cursor-pointer"
+          title="Switch Language: English / বাংলা"
+        >
+          <Globe className="w-3.5 h-3.5 text-blue-600" />
+          <span>{lang === 'en' ? 'EN' : 'বাং'}</span>
+        </button>
+
+        {/* Currency Toggle */}
+        <button
+          onClick={toggleCurrency}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-black font-mono text-emerald-700 transition cursor-pointer"
+          title="Switch Currency: BDT (৳) / USD ($)"
+        >
+          <span>{currency === 'BDT' ? '৳ BDT' : '$ USD'}</span>
+        </button>
+
         <div className="relative">
           <button
             onClick={() => setShowRoleMenu(!showRoleMenu)}

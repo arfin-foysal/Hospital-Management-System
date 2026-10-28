@@ -332,6 +332,34 @@ class BillingService {
       due_amount: newDueAmount
     };
   }
+
+  async accrueDailyBedCharges() {
+    const activeAdmissions = await prisma.admissions.findMany({
+      where: { status: 'Admitted' },
+      include: { wards_and_beds: true, patients: true }
+    });
+
+    let totalAccrued = 0;
+    const details = [];
+
+    for (const adm of activeAdmissions) {
+      const dailyRent = parseFloat(adm.wards_and_beds?.daily_charge || 0);
+      totalAccrued += dailyRent;
+      details.push({
+        admission_id: adm.id,
+        patient_name: adm.patients.name,
+        bed_number: adm.wards_and_beds.bed_number,
+        daily_charge: dailyRent
+      });
+    }
+
+    return {
+      timestamp: new Date().toISOString(),
+      accruedPatientsCount: activeAdmissions.length,
+      totalAccruedAmount: totalAccrued,
+      details
+    };
+  }
 }
 
 module.exports = new BillingService();

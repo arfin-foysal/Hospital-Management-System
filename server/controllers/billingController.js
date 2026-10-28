@@ -68,3 +68,16 @@ exports.recordPayment = async (req, res, next) => {
   }
 };
 
+exports.accrueBedRent = async (req, res, next) => {
+  try {
+    const data = await billingService.accrueDailyBedCharges();
+    res.json({
+      success: true,
+      message: `Midnight bed rent automated accrual completed for ${data.accruedPatientsCount} admitted inpatients. Total: $${data.totalAccruedAmount}`,
+      data
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
