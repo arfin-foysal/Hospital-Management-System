@@ -195,6 +195,7 @@ model patients {
   created_at         DateTime?             @default(now()) @db.Timestamp(0)
   updated_at         DateTime?             @default(now()) @db.Timestamp(0)
   admissions         admissions[]
+  ambulance_trips    ambulance_trips[]
   appointments       appointments[]
   blood_requisitions blood_requisitions[]
   emergency_cases    emergency_cases[]
@@ -508,6 +509,48 @@ model surgeries {
   @@index([patient_id], map: "patient_id")
 }
 
+model ambulance_trips {
+  id              Int                            @id @default(autoincrement())
+  trip_number     String                         @unique(map: "trip_number") @db.VarChar(50)
+  ambulance_id    Int
+  patient_id      Int?
+  caller_name     String                         @db.VarChar(150)
+  caller_phone    String                         @db.VarChar(50)
+  pickup_location String                         @db.VarChar(255)
+  drop_location   String                         @default("CareSync Hospital Emergency ER Bay") @db.VarChar(255)
+  urgency         ambulance_trips_urgency        @default(Emergency_Critical___Red_Code)
+  trip_status     ambulance_trips_trip_status    @default(Dispatched)
+  start_time      DateTime                       @default(now()) @db.DateTime(0)
+  end_time        DateTime?                      @db.DateTime(0)
+  total_km        Decimal?                       @default(10.00) @db.Decimal(6, 2)
+  total_fare      Decimal?                       @default(1500.00) @db.Decimal(10, 2)
+  payment_status  ambulance_trips_payment_status @default(Unpaid)
+  remarks         String?                        @db.Text
+  created_at      DateTime?                      @default(now()) @db.Timestamp(0)
+  ambulances      ambulances                     @relation(fields: [ambulance_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ambulance_trips_ibfk_1")
+  patients        patients?                      @relation(fields: [patient_id], references: [id], onUpdate: NoAction, map: "ambulance_trips_ibfk_2")
+
+  @@index([ambulance_id], map: "idx_ambulance")
+  @@index([trip_status], map: "idx_trip_status")
+  @@index([patient_id], map: "patient_id")
+}
+
+model ambulances {
+  id               Int                       @id @default(autoincrement())
+  vehicle_number   String                    @unique(map: "vehicle_number") @db.VarChar(50)
+  vehicle_model    String                    @db.VarChar(100)
+  ambulance_type   ambulances_ambulance_type @default(Basic_Life_Support__BLS_)
+  driver_name      String                    @db.VarChar(100)
+  driver_phone     String                    @db.VarChar(50)
+  paramedic_name   String?                   @db.VarChar(100)
+  current_location String?                   @default("CareSync Hospital Emergency Bay") @db.VarChar(150)
+  status           ambulances_status         @default(Available)
+  base_charge      Decimal?                  @default(1000.00) @db.Decimal(10, 2)
+  per_km_rate      Decimal?                  @default(50.00) @db.Decimal(10, 2)
+  created_at       DateTime?                 @default(now()) @db.Timestamp(0)
+  ambulance_trips  ambulance_trips[]
+}
+
 enum wards_and_beds_ward_type {
   General_Male   @map("General Male")
   General_Female @map("General Female")
@@ -803,4 +846,39 @@ enum emergency_cases_status {
   Transferred_to_IPD
   Discharged
   Deceased
+}
+
+enum ambulances_ambulance_type {
+  ICU_Ambulance_with_Ventilator        @map("ICU Ambulance with Ventilator")
+  Basic_Life_Support__BLS_             @map("Basic Life Support (BLS)")
+  Advanced_Cardiac_Life_Support__ACLS_ @map("Advanced Cardiac Life Support (ACLS)")
+  Patient_Transport_Vehicle            @map("Patient Transport Vehicle")
+}
+
+enum ambulance_trips_urgency {
+  Emergency_Critical___Red_Code @map("Emergency Critical - Red Code")
+  Urgent_Transfer               @map("Urgent Transfer")
+  Routine_Transfer              @map("Routine Transfer")
+}
+
+enum ambulances_status {
+  Available
+  Dispatched___On_Trip @map("Dispatched / On Trip")
+  At_Patient_Scene     @map("At Patient Scene")
+  Returning_to_Base    @map("Returning to Base")
+  Maintenance
+}
+
+enum ambulance_trips_trip_status {
+  Dispatched
+  Reached_Patient_Scene  @map("Reached Patient Scene")
+  In_Transit_to_Hospital @map("In Transit to Hospital")
+  Completed
+  Cancelled
+}
+
+enum ambulance_trips_payment_status {
+  Paid
+  Unpaid
+  Charged_to_Hospital_Bill @map("Charged to Hospital Bill")
 }

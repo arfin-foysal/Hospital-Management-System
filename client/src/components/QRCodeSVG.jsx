@@ -73,3 +73,4 @@ const QRCodeSVG = ({ value = 'CareSync-HMS', size = 96, fgColor = '#1e293b', bgC
 };
 
 export default QRCodeSVG;
+

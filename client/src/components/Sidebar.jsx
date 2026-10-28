@@ -17,7 +17,8 @@ import {
   Droplet,
   Scissors,
   HeartPulse,
-  Bell
+  Bell,
+  Ambulance
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocale } from '../context/LocaleContext';
@@ -55,6 +56,12 @@ const Sidebar = () => {
       label: t('emergency'),
       path: '/emergency',
       icon: AlertOctagon,
+      show: isAdmin || isReceptionist || isDoctor,
+    },
+    {
+      label: t('ambulance'),
+      path: '/ambulance',
+      icon: Ambulance,
       show: isAdmin || isReceptionist || isDoctor,
     },
     {

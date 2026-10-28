@@ -14,6 +14,7 @@ const translations = {
     pharmacy: 'Pharmacy & Stock',
     laboratory: 'Laboratory & Tests',
     bloodBank: 'Blood Bank',
+    ambulance: 'Ambulance Service',
     billing: 'Billing & Invoicing',
     myRecords: 'My Medical Records',
     users: 'Staff & Roles',
@@ -49,6 +50,7 @@ const translations = {
     pharmacy: 'ফার্মেসি ও স্টক',
     laboratory: 'ল্যাবরেটরি ও টেস্ট',
     bloodBank: 'ব্লাড ব্যাংক ও ট্রান্সফিউশন',
+    ambulance: 'অ্যাম্বুলেন্স সার্ভিস',
     billing: 'বিলিং ও ফাইন্যান্স',
     myRecords: 'আমার স্বাস্থ্য রেকর্ড',
     users: 'স্টাফ ও রোল নিয়ন্ত্রণ',
@@ -119,3 +121,4 @@ export const useLocale = () => {
   if (!ctx) throw new Error('useLocale must be used within a LocaleProvider');
   return ctx;
 };
+

@@ -18,6 +18,7 @@ import BloodBank from './pages/BloodBank';
 import OperationTheatre from './pages/OperationTheatre';
 import NursingStation from './pages/NursingStation';
 import NotificationsLog from './pages/NotificationsLog';
+import AmbulanceService from './pages/AmbulanceService';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading, role } = useAuth();
@@ -66,6 +67,7 @@ function App() {
         <Route path="laboratory" element={<Laboratory />} />
         <Route path="billing" element={<Billing />} />
         <Route path="emergency" element={<EmergencyTriage />} />
+        <Route path="ambulance" element={<AmbulanceService />} />
         <Route path="blood-bank" element={<BloodBank />} />
         <Route path="operation-theatre" element={<OperationTheatre />} />
         <Route path="nursing-station" element={<NursingStation />} />
