@@ -19,9 +19,6 @@ import OperationTheatre from './pages/OperationTheatre';
 import NursingStation from './pages/NursingStation';
 import NotificationsLog from './pages/NotificationsLog';
 import AmbulanceService from './pages/AmbulanceService';
-import Telemedicine from './pages/Telemedicine';
-import RadiologyViewer from './pages/RadiologyViewer';
-import InsuranceClaims from './pages/InsuranceClaims';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading, role } = useAuth();
@@ -68,12 +65,9 @@ function App() {
         <Route path="emr-consultation" element={<DoctorConsultation />} />
         <Route path="pharmacy" element={<Pharmacy />} />
         <Route path="laboratory" element={<Laboratory />} />
-        <Route path="radiology" element={<RadiologyViewer />} />
         <Route path="billing" element={<Billing />} />
-        <Route path="insurance" element={<InsuranceClaims />} />
         <Route path="emergency" element={<EmergencyTriage />} />
         <Route path="ambulance" element={<AmbulanceService />} />
-        <Route path="telemedicine" element={<Telemedicine />} />
         <Route path="blood-bank" element={<BloodBank />} />
         <Route path="operation-theatre" element={<OperationTheatre />} />
         <Route path="nursing-station" element={<NursingStation />} />

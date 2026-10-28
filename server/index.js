@@ -25,9 +25,6 @@ const otRoutes = require('./routes/otRoutes');
 const nursingRoutes = require('./routes/nursingRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const ambulanceRoutes = require('./routes/ambulanceRoutes');
-const telemedicineRoutes = require('./routes/telemedicineRoutes');
-const radiologyRoutes = require('./routes/radiologyRoutes');
-const insuranceRoutes = require('./routes/insuranceRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -87,9 +84,6 @@ app.use('/api/ot', otRoutes);
 app.use('/api/nursing', nursingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/ambulance', ambulanceRoutes);
-app.use('/api/telemedicine', telemedicineRoutes);
-app.use('/api/radiology', radiologyRoutes);
-app.use('/api/insurance', insuranceRoutes);
 
 // Serve frontend build if exists
 const clientDist = path.join(__dirname, '../client/dist');

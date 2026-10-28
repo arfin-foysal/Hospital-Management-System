@@ -10,12 +10,10 @@ import {
   Receipt, 
   X, 
   Check, 
-  AlertCircle,
-  Tag
+  AlertCircle
 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import PatientWristbandModal from '../components/PatientWristbandModal';
 
 const Patients = () => {
   const { isAdmin, isReceptionist, isDoctor } = useAuth();
@@ -26,7 +24,6 @@ const Patients = () => {
   const [patientHistory, setPatientHistory] = useState(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [activeTab, setActiveTab] = useState('prescriptions');
-  const [wristbandPatient, setWristbandPatient] = useState(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -203,21 +200,12 @@ const Patients = () => {
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button
-                          onClick={() => setWristbandPatient(pat)}
-                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded-lg text-xs transition"
-                          title="Print Hospital Wristband & Specimen Barcode"
-                        >
-                          <Tag className="w-3.5 h-3.5 text-blue-600" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenProfile(pat)}
-                          className="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition"
-                        >
-                          View History
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleOpenProfile(pat)}
+                        className="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition"
+                      >
+                        View History
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -626,13 +614,6 @@ const Patients = () => {
           </div>
         </div>
       )}
-
-      {/* Patient Wristband & Specimen Label Modal */}
-      <PatientWristbandModal
-        isOpen={!!wristbandPatient}
-        onClose={() => setWristbandPatient(null)}
-        patient={wristbandPatient}
-      />
     </div>
   );
 };
