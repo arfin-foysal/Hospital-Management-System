@@ -15,3 +15,4 @@ router.post('/', authenticateToken, ambulanceController.createAmbulance);
 router.put('/:id', authenticateToken, ambulanceController.updateAmbulance);
 
 module.exports = router;
+

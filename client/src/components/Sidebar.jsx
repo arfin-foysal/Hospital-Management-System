@@ -18,7 +18,10 @@ import {
   Scissors,
   HeartPulse,
   Bell,
-  Ambulance
+  Ambulance,
+  Video,
+  Layers,
+  CreditCard
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocale } from '../context/LocaleContext';
@@ -95,10 +98,28 @@ const Sidebar = () => {
       show: isAdmin || isLabTech || isDoctor || isPatient,
     },
     {
+      label: t('radiology'),
+      path: '/radiology',
+      icon: Layers,
+      show: isAdmin || isDoctor || isLabTech,
+    },
+    {
       label: t('bloodBank'),
       path: '/blood-bank',
       icon: Droplet,
       show: isAdmin || isLabTech || isDoctor,
+    },
+    {
+      label: t('telemedicine'),
+      path: '/telemedicine',
+      icon: Video,
+      show: isAdmin || isDoctor || isPatient || isReceptionist,
+    },
+    {
+      label: t('insurance'),
+      path: '/insurance',
+      icon: CreditCard,
+      show: isAdmin || isAccountant || isReceptionist,
     },
     {
       label: t('billing'),

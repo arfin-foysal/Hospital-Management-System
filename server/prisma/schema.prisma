@@ -57,27 +57,29 @@ model appointments {
 }
 
 model doctors {
-  id                 Int                  @id @default(autoincrement())
-  user_id            Int?                 @unique(map: "user_id")
-  name               String               @db.VarChar(100)
-  department         String               @db.VarChar(100)
-  specialization     String               @db.VarChar(150)
-  qualification      String               @db.VarChar(150)
-  room_no            String               @db.VarChar(50)
-  consultation_fee   Decimal              @default(500.00) @db.Decimal(10, 2)
-  available_days     String?              @default("Mon,Tue,Wed,Thu,Fri,Sat") @db.VarChar(100)
-  consultation_hours String?              @default("09:00 AM - 05:00 PM") @db.VarChar(100)
-  phone              String?              @db.VarChar(20)
-  email              String?              @db.VarChar(100)
-  created_at         DateTime?            @default(now()) @db.Timestamp(0)
-  admissions         admissions[]
-  appointments       appointments[]
-  blood_requisitions blood_requisitions[]
-  users              users?               @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "doctors_ibfk_1")
-  emergency_cases    emergency_cases[]
-  lab_requests       lab_requests[]
-  prescriptions      prescriptions[]
-  surgeries          surgeries[]
+  id                    Int                     @id @default(autoincrement())
+  user_id               Int?                    @unique(map: "user_id")
+  name                  String                  @db.VarChar(100)
+  department            String                  @db.VarChar(100)
+  specialization        String                  @db.VarChar(150)
+  qualification         String                  @db.VarChar(150)
+  room_no               String                  @db.VarChar(50)
+  consultation_fee      Decimal                 @default(500.00) @db.Decimal(10, 2)
+  available_days        String?                 @default("Mon,Tue,Wed,Thu,Fri,Sat") @db.VarChar(100)
+  consultation_hours    String?                 @default("09:00 AM - 05:00 PM") @db.VarChar(100)
+  phone                 String?                 @db.VarChar(20)
+  email                 String?                 @db.VarChar(100)
+  created_at            DateTime?               @default(now()) @db.Timestamp(0)
+  admissions            admissions[]
+  appointments          appointments[]
+  blood_requisitions    blood_requisitions[]
+  users                 users?                  @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "doctors_ibfk_1")
+  emergency_cases       emergency_cases[]
+  lab_requests          lab_requests[]
+  prescriptions         prescriptions[]
+  radiology_records     radiology_records[]
+  surgeries             surgeries[]
+  telemedicine_sessions telemedicine_sessions[]
 }
 
 model invoices {
@@ -179,32 +181,35 @@ model medicines {
 }
 
 model patients {
-  id                 Int                   @id @default(autoincrement())
-  patient_id         String                @unique(map: "patient_id") @db.VarChar(50)
-  user_id            Int?                  @unique(map: "user_id")
-  name               String                @db.VarChar(100)
-  age                Int
-  gender             patients_gender
-  blood_group        patients_blood_group? @default(O_POS)
-  phone              String                @db.VarChar(20)
-  email              String?               @db.VarChar(100)
-  address            String?               @db.Text
-  emergency_contact  String?               @db.VarChar(100)
-  allergies          String?               @db.Text
-  chronic_conditions String?               @db.Text
-  created_at         DateTime?             @default(now()) @db.Timestamp(0)
-  updated_at         DateTime?             @default(now()) @db.Timestamp(0)
-  admissions         admissions[]
-  ambulance_trips    ambulance_trips[]
-  appointments       appointments[]
-  blood_requisitions blood_requisitions[]
-  emergency_cases    emergency_cases[]
-  invoices           invoices[]
-  lab_requests       lab_requests[]
-  users              users?                @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "patients_ibfk_1")
-  pharmacy_sales     pharmacy_sales[]
-  prescriptions      prescriptions[]
-  surgeries          surgeries[]
+  id                    Int                     @id @default(autoincrement())
+  patient_id            String                  @unique(map: "patient_id") @db.VarChar(50)
+  user_id               Int?                    @unique(map: "user_id")
+  name                  String                  @db.VarChar(100)
+  age                   Int
+  gender                patients_gender
+  blood_group           patients_blood_group?   @default(O_POS)
+  phone                 String                  @db.VarChar(20)
+  email                 String?                 @db.VarChar(100)
+  address               String?                 @db.Text
+  emergency_contact     String?                 @db.VarChar(100)
+  allergies             String?                 @db.Text
+  chronic_conditions    String?                 @db.Text
+  created_at            DateTime?               @default(now()) @db.Timestamp(0)
+  updated_at            DateTime?               @default(now()) @db.Timestamp(0)
+  admissions            admissions[]
+  ambulance_trips       ambulance_trips[]
+  appointments          appointments[]
+  blood_requisitions    blood_requisitions[]
+  emergency_cases       emergency_cases[]
+  insurance_claims      insurance_claims[]
+  invoices              invoices[]
+  lab_requests          lab_requests[]
+  users                 users?                  @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "patients_ibfk_1")
+  pharmacy_sales        pharmacy_sales[]
+  prescriptions         prescriptions[]
+  radiology_records     radiology_records[]
+  surgeries             surgeries[]
+  telemedicine_sessions telemedicine_sessions[]
 
   @@index([patient_id], map: "idx_patient_id")
   @@index([phone], map: "idx_phone")
@@ -551,6 +556,74 @@ model ambulances {
   ambulance_trips  ambulance_trips[]
 }
 
+model insurance_claims {
+  id                Int                           @id @default(autoincrement())
+  claim_number      String                        @unique(map: "claim_number") @db.VarChar(50)
+  patient_id        Int
+  insurance_company String                        @db.VarChar(150)
+  policy_number     String                        @db.VarChar(100)
+  tpa_name          String?                       @default("CareSync Hospital TPA Desk") @db.VarChar(100)
+  claim_type        insurance_claims_claim_type   @default(Cashless_Hospitalization)
+  claim_status      insurance_claims_claim_status @default(Pre_Auth_Submitted)
+  estimated_amount  Decimal                       @db.Decimal(10, 2)
+  approved_amount   Decimal?                      @default(0.00) @db.Decimal(10, 2)
+  copay_percentage  Decimal?                      @default(10.00) @db.Decimal(5, 2)
+  approval_code     String?                       @db.VarChar(50)
+  remarks           String?                       @db.Text
+  created_at        DateTime?                     @default(now()) @db.Timestamp(0)
+  patients          patients                      @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "insurance_claims_ibfk_1")
+
+  @@index([claim_status], map: "idx_claim_status")
+  @@index([patient_id], map: "patient_id")
+}
+
+model radiology_records {
+  id                  Int                        @id @default(autoincrement())
+  study_id            String                     @unique(map: "study_id") @db.VarChar(50)
+  patient_id          Int
+  doctor_id           Int?
+  modality            radiology_records_modality @default(X_Ray)
+  body_part           String                     @db.VarChar(100)
+  imaging_date        DateTime                   @default(now()) @db.DateTime(0)
+  radiologist_name    String                     @db.VarChar(100)
+  image_url           String                     @db.VarChar(255)
+  status              radiology_records_status   @default(Pending_Review)
+  clinical_indication String?                    @db.Text
+  findings            String?                    @db.Text
+  impression          String?                    @db.Text
+  created_at          DateTime?                  @default(now()) @db.Timestamp(0)
+  patients            patients                   @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "radiology_records_ibfk_1")
+  doctors             doctors?                   @relation(fields: [doctor_id], references: [id], onUpdate: NoAction, map: "radiology_records_ibfk_2")
+
+  @@index([doctor_id], map: "doctor_id")
+  @@index([modality], map: "idx_rad_modality")
+  @@index([status], map: "idx_rad_status")
+  @@index([patient_id], map: "patient_id")
+}
+
+model telemedicine_sessions {
+  id                    Int                                   @id @default(autoincrement())
+  session_code          String                                @unique(map: "session_code") @db.VarChar(50)
+  patient_id            Int
+  doctor_id             Int
+  scheduled_at          DateTime                              @db.DateTime(0)
+  status                telemedicine_sessions_status          @default(Scheduled)
+  room_url              String                                @db.VarChar(255)
+  chief_complaint       String                                @db.VarChar(255)
+  diagnosis             String?                               @db.Text
+  doctor_notes          String?                               @db.Text
+  consultation_fee      Decimal?                              @default(800.00) @db.Decimal(10, 2)
+  payment_status        telemedicine_sessions_payment_status? @default(Paid)
+  call_duration_seconds Int?                                  @default(0)
+  created_at            DateTime?                             @default(now()) @db.Timestamp(0)
+  patients              patients                              @relation(fields: [patient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "telemedicine_sessions_ibfk_1")
+  doctors               doctors                               @relation(fields: [doctor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "telemedicine_sessions_ibfk_2")
+
+  @@index([doctor_id], map: "idx_tele_doctor")
+  @@index([patient_id], map: "idx_tele_patient")
+  @@index([status], map: "idx_tele_status")
+}
+
 enum wards_and_beds_ward_type {
   General_Male   @map("General Male")
   General_Female @map("General Female")
@@ -881,4 +954,44 @@ enum ambulance_trips_payment_status {
   Paid
   Unpaid
   Charged_to_Hospital_Bill @map("Charged to Hospital Bill")
+}
+
+enum radiology_records_modality {
+  X_Ray
+  CT_Scan
+  MRI
+  Ultrasound
+  Echocardiogram
+}
+
+enum telemedicine_sessions_status {
+  Scheduled
+  In_Lobby
+  In_Call
+  Completed
+  Cancelled
+}
+
+enum insurance_claims_claim_type {
+  Cashless_Hospitalization
+  Reimbursement_Claim
+}
+
+enum insurance_claims_claim_status {
+  Pre_Auth_Submitted
+  Approved
+  Under_Query
+  Settled
+  Rejected
+}
+
+enum radiology_records_status {
+  Pending_Review
+  Preliminary
+  Final_Approved
+}
+
+enum telemedicine_sessions_payment_status {
+  Paid
+  Unpaid
 }
