@@ -20,6 +20,12 @@ import NursingStation from './pages/NursingStation';
 import NotificationsLog from './pages/NotificationsLog';
 import AmbulanceService from './pages/AmbulanceService';
 
+// Public pages
+import LandingPage from './pages/public/LandingPage';
+import FeaturesPage from './pages/public/FeaturesPage';
+import AboutPage from './pages/public/AboutPage';
+import ContactPage from './pages/public/ContactPage';
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading, role } = useAuth();
 
@@ -37,7 +43,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   return children;
@@ -48,10 +54,18 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
+      {/* Public routes */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/features" element={<FeaturesPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/contact" element={<ContactPage />} />
 
+      {/* Auth */}
+      <Route path="/login" element={!user ? <Login /> : <Navigate to="/app" replace />} />
+
+      {/* Protected dashboard routes */}
       <Route
-        path="/"
+        path="/app"
         element={
           <ProtectedRoute>
             <Layout />
@@ -89,4 +103,3 @@ function App() {
 }
 
 export default App;
-

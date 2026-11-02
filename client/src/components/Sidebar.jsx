@@ -1,15 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  BedDouble, 
-  Stethoscope, 
-  Pill, 
-  FlaskConical, 
-  Receipt, 
-  ShieldCheck, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  BedDouble,
+  Stethoscope,
+  Pill,
+  FlaskConical,
+  Receipt,
+  ShieldCheck,
   FileText,
   LogOut,
   Activity,
@@ -30,97 +30,97 @@ const Sidebar = () => {
   const navItems = [
     {
       label: t('dashboard'),
-      path: '/',
+      path: '/app',
       icon: LayoutDashboard,
       show: true,
     },
     {
       label: t('patients'),
-      path: '/patients',
+      path: '/app/patients',
       icon: Users,
       show: isAdmin || isReceptionist || isDoctor || isAccountant,
     },
     {
       label: t('appointments'),
-      path: '/appointments',
+      path: '/app/appointments',
       icon: Calendar,
       show: isAdmin || isReceptionist || isDoctor || isPatient,
     },
     {
       label: t('ipdBeds'),
-      path: '/ipd-beds',
+      path: '/app/ipd-beds',
       icon: BedDouble,
       show: isAdmin || isReceptionist || isDoctor,
     },
     {
       label: t('emergency'),
-      path: '/emergency',
+      path: '/app/emergency',
       icon: AlertOctagon,
       show: isAdmin || isReceptionist || isDoctor,
     },
     {
       label: t('ambulance'),
-      path: '/ambulance',
+      path: '/app/ambulance',
       icon: Ambulance,
       show: isAdmin || isReceptionist || isDoctor,
     },
     {
       label: t('nursingStation'),
-      path: '/nursing-station',
+      path: '/app/nursing-station',
       icon: HeartPulse,
       show: isAdmin || isDoctor || isReceptionist,
     },
     {
       label: t('operationTheatre'),
-      path: '/operation-theatre',
+      path: '/app/operation-theatre',
       icon: Scissors,
       show: isAdmin || isDoctor,
     },
     {
       label: t('doctorEmr'),
-      path: '/emr-consultation',
+      path: '/app/emr-consultation',
       icon: Stethoscope,
       show: isAdmin || isDoctor,
     },
     {
       label: t('pharmacy'),
-      path: '/pharmacy',
+      path: '/app/pharmacy',
       icon: Pill,
       show: isAdmin || isPharmacist || isDoctor,
     },
     {
       label: t('laboratory'),
-      path: '/laboratory',
+      path: '/app/laboratory',
       icon: FlaskConical,
       show: isAdmin || isLabTech || isDoctor || isPatient,
     },
     {
       label: t('bloodBank'),
-      path: '/blood-bank',
+      path: '/app/blood-bank',
       icon: Droplet,
       show: isAdmin || isLabTech || isDoctor,
     },
     {
       label: t('billing'),
-      path: '/billing',
+      path: '/app/billing',
       icon: Receipt,
       show: isAdmin || isAccountant || isPatient,
     },
     {
       label: t('notifications'),
-      path: '/notifications',
+      path: '/app/notifications',
       icon: Bell,
       show: isAdmin,
     },
     {
       label: t('myRecords'),
-      path: '/my-records',
+      path: '/app/my-records',
       icon: FileText,
       show: isPatient,
     },
     {
       label: t('users'),
-      path: '/users',
+      path: '/app/users',
       icon: ShieldCheck,
       show: isAdmin,
     },
@@ -177,12 +177,11 @@ const Sidebar = () => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/'}
+              end={item.path === '/app'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70'
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive
+                  ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70'
                 }`
               }
             >

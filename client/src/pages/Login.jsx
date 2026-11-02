@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Activity, 
-  Lock, 
-  Mail, 
-  ArrowRight, 
-  ShieldCheck, 
-  Stethoscope, 
-  UserCheck, 
-  Pill, 
-  FlaskConical, 
-  CreditCard, 
+import {
+  Activity,
+  Lock,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
+  Stethoscope,
+  UserCheck,
+  Pill,
+  FlaskConical,
+  CreditCard,
   User,
   AlertCircle
 } from 'lucide-react';
@@ -44,7 +44,7 @@ const Login = () => {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/app');
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Invalid credentials');
     } finally {
@@ -59,7 +59,7 @@ const Login = () => {
     setLoading(true);
     try {
       await login(acc.email, acc.pass);
-      navigate('/');
+      navigate('/app');
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Login failed');
     } finally {
